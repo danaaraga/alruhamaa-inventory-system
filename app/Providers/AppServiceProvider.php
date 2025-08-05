@@ -2,25 +2,29 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Blade;
+use App\Models\User;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
-class AppServiceProvider extends ServiceProvider
+class AuthServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+    protected $policies = [
+        // 'App\Models\Model' => 'App\Policies\ModelPolicy',
+    ];
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        // Memastikan komponen-komponen Laravel diinisialisasi dengan benar
-        Blade::withoutDoubleEncoding();
+        // Define Gates
+        Gate::define('admin', function (User $user) {
+            return $user->isAdmin();
+        });
+
+        Gate::define('manager', function (User $user) {
+            return $user->isManager() || $user->isAdmin();
+        });
+
+        Gate::define('staff', function (User $user) {
+            return $user->isStaff() || $user->isManager() || $user->isAdmin();
+        });
     }
 }

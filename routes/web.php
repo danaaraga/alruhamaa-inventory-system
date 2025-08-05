@@ -2,7 +2,10 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\ProductController;
+
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\ManagerMiddleware;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,6 +38,11 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
     Route::patch('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+});
+
+// Product Management - untuk Manager dan Admin
+Route::middleware(['auth', ManagerMiddleware::class])->group(function () {
+    Route::resource('products', ProductController::class);
 });
 
 // Hanya include login dan logout, tanpa register
