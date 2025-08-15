@@ -177,7 +177,7 @@ class ProductController extends Controller
 
 
 
-     return redirect()->route('products.create')->with('success', 'berhasil menambahkan produk');
+     return redirect()->back()->with('success', 'berhasil menambahkan produk');
 
     }
 }

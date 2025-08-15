@@ -1,13 +1,11 @@
 <?php
-
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Categorycontroller;
 use App\Http\Controllers\InventController;
 use App\Http\Controllers\Controller;
-
-
+use App\Http\Controllers\DashController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ManagerMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -23,9 +21,9 @@ Route::get('/', function () {
 });
 
 // Dashboard - hanya untuk user yang login
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
+Route::middleware('auth')->group(function () {
+    Route::get('dashboard', [DashController::class, 'index'])->name('dashboard');
+});
 
 // Profile routes
 Route::middleware('auth')->group(function () {
