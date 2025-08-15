@@ -4,6 +4,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Categorycontroller;
+use App\Http\Controllers\InventController;
+use App\Http\Controllers\Controller;
 
 
 use App\Http\Middleware\AdminMiddleware;
@@ -45,6 +47,7 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
 // Product Management - untuk Manager dan Admin
 Route::middleware(['auth', ManagerMiddleware::class])->group(function () {
     Route::resource('products', ProductController::class);
+
 });
 
 // kategori
@@ -52,8 +55,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/category', [Categorycontroller::class, 'index'])->name('category');
     Route::get('/addcategory', [Categorycontroller::class, 'create'])->name('addcategory');
     Route::post('/addcategory', [Categorycontroller::class, 'store'])->name('store');
+    Route::delete('/deletecategory{id}', [Categorycontroller::class, 'destroy'])->name('deletecategory');
+
 
 });
+//inventory
+Route::middleware('auth')->group(function () {
+    Route::get('/inventory', [InventController::class, 'index'])->name('invent');
+    Route::put('/produk/update-all', [InventController::class, 'update'])->name('updateAll');
+    Route::delete('/inventdelete{id}', [InventController::class, 'destroy'])->name('delete');
+
+});
+
 
 // Hanya include login dan logout, tanpa register
 require __DIR__.'/auth.php';

@@ -69,8 +69,11 @@ class Categorycontroller extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        $data = Kategori::findOrFail($id);
+        $data->delete();
+    
+        return redirect()->route('category')->with('success', 'berhasil dihapus');
     }
 }
