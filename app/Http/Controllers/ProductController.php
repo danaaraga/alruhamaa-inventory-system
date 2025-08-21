@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Support\Str;
+use App\Http\Controllers\ActivityController;
+use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
 use App\Models\Kategori;
 use App\Models\Produk;
+use App\Models\Activity;
 
 class ProductController extends Controller
 {
@@ -45,7 +48,7 @@ class ProductController extends Controller
                   $price = preg_replace('/[^0-9]/', '', $request->harga); // hapus semua selain angka
 
         // Kalau pakai DECIMAL dan mau simpan dalam format 1.200.000,00
-                  $price = number_format($price, 2, '.', ''); 
+                  $price = number_format($price, 2, '.', '');
                  // Ambil kode kategori (3 huruf pertama)
                 $kodeKategori = strtoupper(Str::limit(preg_replace('/\s+/', '', $request->kategori_id), 3, ''));
 
@@ -72,26 +75,30 @@ class ProductController extends Controller
                 //  if ($request->hasFile('gambar')) {
                 //    $path = $request->file('gambar')->store('foto_produk', 'public');
 
-                 //} 
+                 //}
                  //
                 }
 
      // Kalau belum ada → buat produk baru
-     Produk::create([
-         'name'      => $request->nama,
-         'price'     => $price,
-         'category_id'  => $request->kategori_id,
-         'satuan'  => $request->satuan,
-         'sku'       => $sku,
-         'stock_quantity' => $request->stok,
-         'description' => $request->deskripsi,
-        // 'gambar'    => $path,
-     ]);
+$pro = Produk::create([
+    'name'           => $request->nama,        // pastikan field DB kamu pakai "name"
+    'price'          => $price,
+    'category_id'    => $request->kategori_id,
+    'satuan'         => $request->satuan,
+    'sku'            => $sku,
+    'stock_quantity' => $request->stok,
+    'description'    => $request->deskripsi,
+    // 'gambar'      => $path, // aktifkan kalau ada upload gambar
+]);
 
+// Simpan aktivitas
+Activity::create([
+    'user'       => Auth::check() ? Auth::user()->name : 'Guest',
+    'action'     => 'Menambah produk',
+    'model'      => 'Produk', // konsisten, karena modelmu bernama Produk
+    'record_id'  => $pro->id,
+]);
 
-
-
-        
         // Validation dan store logic akan ditambahkan nanti
         return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan!');
     }
@@ -108,15 +115,66 @@ class ProductController extends Controller
         return view('products.edit');
     }
 
-    public function update(Request $request, $id)
+    public function update(request $request, $id)
     {
-        // Update product logic
-        return redirect()->route('products.index')->with('success', 'Produk berhasil diupdate!');
-    }
+  // validasi input
+        $validated = $request->validate([
+            'title1' => 'required|string|max:255',
+            'price1' => 'required|numeric',
+            'stock1'  => 'required|integer',
+            'satuan1' => 'required|string',
+            'description1' => 'required|string',
+            'sku1' => 'required|string',
+            'description1' => 'required|string',
+            'kategori_id1' => 'required|string',
+
+
+        ]);
+
+        // cari produk berdasarkan id
+        $product = Produk::findOrFail($id);
+
+        // update data
+        $product->update(
+            [
+    'name'           => $request->title1,        // pastikan field DB kamu pakai "name"
+    'price'          => $request->price1,
+    'category_id'    => $request->kategori_id1,
+    'satuan'         => $request->satuan1,
+    'sku'            => $request->sku1,
+    'stock_quantity' => $request->stock1,
+    'description'    => $request->description1,
+    // 'gambar'      => $path, // aktifkan kalau ada upload gambar
+]
+
+        );
+        Activity::create([
+            'user'       => Auth::check() ? Auth::user()->name : 'Guest',
+            'action'     => 'Mengedit produk',
+            'model'      => 'Produk', // konsisten, karena modelmu bernama Produk
+            'record_id'  => $id,
+]);
+
+
+        // redirect balik dengan pesan sukses
+        return redirect()->route('products.index')
+                         ->with('success', 'Produk berhasil diperbarui!');
+        }
 
     public function destroy($id)
     {
         // Delete product logic
+        $data = Produk::findOrFail($id);
+        $data-> delete();
+
+        Activity::create([
+            'user'       => Auth::check() ? Auth::user()->name : 'Guest',
+            'action'     => 'Menghapus produk',
+            'model'      => 'Produk', // konsisten, karena modelmu bernama Produk
+            'record_id'  => $id,
+]);
+
+
         return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus!');
     }
     public function save(request $request)
@@ -132,7 +190,7 @@ class ProductController extends Controller
                   $price = preg_replace('/[^0-9]/', '', $request->harga); // hapus semua selain angka
 
         // Kalau pakai DECIMAL dan mau simpan dalam format 1.200.000,00
-                  $price = number_format($price, 2, '.', ''); 
+                  $price = number_format($price, 2, '.', '');
                  // Ambil kode kategori (3 huruf pertama)
                 $kodeKategori = strtoupper(Str::limit(preg_replace('/\s+/', '', $request->kategori_id), 3, ''));
 
@@ -159,7 +217,7 @@ class ProductController extends Controller
                 //  if ($request->hasFile('gambar')) {
                 //    $path = $request->file('gambar')->store('foto_produk', 'public');
 
-                 //} 
+                 //}
                  //
                 }
 
@@ -179,5 +237,11 @@ class ProductController extends Controller
 
      return redirect()->back()->with('success', 'berhasil menambahkan produk');
 
+    }
+    public function deleteall()
+    {
+
+        Produk::query()->delete();
+        return redirect()->back()->with('success', 'Semua data berhasil dihapus!');
     }
 }

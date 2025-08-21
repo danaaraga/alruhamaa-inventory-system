@@ -6,6 +6,12 @@ use Illuminate\Http\Request;
 use App\Models\Produk;
 use App\Models\Kategori;
 
+
+use App\Models\Activity;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ActivityController;
+
+
 class InventController extends Controller
 {
     /**
@@ -77,9 +83,11 @@ class InventController extends Controller
                     'description'    => $data['description'],
                     'satuan'        => $data['satuan']
                 ]);
+
             }
         }
-    
+
+
         return back()->with('success', 'Semua data berhasil diperbarui.');
     }
 
@@ -90,10 +98,15 @@ class InventController extends Controller
     {
         $data = Produk::findOrFail($id);
         $data->delete();
-    
+
         return response()->json([
             'success' => true,
             'message' => 'Data berhasil dihapus'
         ]);
+    }
+    public function deleteall() {
+        Produk::query()->delete();
+        return redirect()->back()->with('success', 'Semua data berhasil dihapus!');
+
     }
 }
